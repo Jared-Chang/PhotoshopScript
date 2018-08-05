@@ -1,3 +1,8 @@
+/***********************************
+    Auth: QiFen (QiFen.Pocket@gmail.com)
+    LICENSE: MIT
+************************************/
+
 var lastMeshPath = "C:\\Users\\[Your User Name]\\AppData\\Roaming\\Adobe\\Adobe Photoshop CC 2018\\Adobe Photoshop CC 2018 Settings\\Liquify Last Mesh.psp";
 
 var theLayers = getSelectedLayersIdx();
