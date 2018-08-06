@@ -66,6 +66,7 @@ function getSelectedLayersIdx() {
         for (var i = 0; i < desc.count; i++) {
             var index = desc.getReference(i).getIndex();
             try {
+                activeDocument.backgroundLayer;
                 selectedLayers.push(index);
             }
             catch (e) {
