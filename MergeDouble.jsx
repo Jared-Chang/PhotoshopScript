@@ -3,17 +3,9 @@
     LICENSE: MIT
 ************************************/
 
-var selectedLayerIdx = getSelectedLayersIdx();
+var task = "var selectedLayerIdx = getSelectedLayersIdx(); var doActionTimes = selectedLayerIdx.length - 1; selectLayerByIndex(selectedLayerIdx[selectedLayerIdx.length - 1]); for (var p = 0; p < doActionTimes; p++) { mergeDouble(); updateProgress(doActionTimes, p) } deleteLayer(selectedLayerIdx[0]);";
 
-var doActionTimes = selectedLayerIdx.length - 1;
-
-selectLayerByIndex(selectedLayerIdx[selectedLayerIdx.length - 1]);
-
-for (var p = 0; p < doActionTimes; p++) {
-    mergeDouble();
-}
-
-deleteLayer(selectedLayerIdx[0]);
+doForcedProgress("Double merging", task);
 
 function deleteLayer(index) {
     var ref = new ActionReference();

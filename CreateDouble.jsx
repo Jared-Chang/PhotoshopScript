@@ -3,17 +3,9 @@
     LICENSE: MIT
 ************************************/
 
-var selectedLayerNames = getSelectedLayerName();
+var task = "var selectedLayerNames = getSelectedLayerName(); startSelectionProcess(); for (var p = 0; p < selectedLayerNames.length; p++) { selectOpaquePixel(selectedLayerNames[p]); selectOpaquePixel(selectedLayerNames[p]); updateProgress(selectedLayerNames.length, p) } copyMerge(); pastInPanel();";
 
-startSelectionProcess();
-
-for (var p = 0; p < selectedLayerNames.length; p++) { 
-    selectOpaquePixel(selectedLayerNames[p]); 
-    selectOpaquePixel(selectedLayerNames[p]); 
-} 
-
-copyMerge();
-pastInPanel();
+doForcedProgress("Double creating", task);
 
 function getSelectedLayerName() {
     var theLayers = getSelectedLayersIdx();
