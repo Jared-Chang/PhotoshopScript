@@ -4,7 +4,13 @@
 ************************************/
 
 createProgressWindow();
-mergeDouble(updateProgress);
+try {
+    mergeDouble(updateProgress);
+}
+catch(e)
+{
+    alert(e.message);
+}
 close();
 
 function mergeDouble(updateProgress)
