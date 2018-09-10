@@ -3,9 +3,43 @@
     LICENSE: MIT
 ************************************/
 
-var task = "var selectedLayerIdx = getSelectedLayersIdx(); var doActionTimes = selectedLayerIdx.length - 1; selectLayerByIndex(selectedLayerIdx[selectedLayerIdx.length - 1]); for (var p = 0; p < doActionTimes; p++) { mergeDouble(); updateProgress(doActionTimes, p) } deleteLayer(selectedLayerIdx[0]);";
+createProgressWindow();
+mergeDouble(updateProgress);
+close();
 
-doForcedProgress("Double merging", task);
+function mergeDouble(updateProgress)
+{
+    var selectedLayerIdx = getSelectedLayersIdx(); 
+
+    var doActionTimes = selectedLayerIdx.length - 1; 
+    
+    selectLayerByIndex(selectedLayerIdx[selectedLayerIdx.length - 1]); 
+    
+    for (var p = 0; p < doActionTimes; p++) { 
+        if (skipNextWhenNotNormalLayer()) { continue; }
+        mergeDoubleProcess(selectedLayerIdx[doActionTimes - p - 1]); 
+
+        var percentage = p / doActionTimes * 100;
+        updateProgress(percentage, percentage + "%");
+    } 
+    
+    deleteLayer(selectedLayerIdx[0]);
+}
+
+function skipNextWhenNotNormalLayer()
+{
+    selectDown();
+
+    if (!activeLayerIsNormalLayer())
+    {
+        selectUp();
+        moveDown();
+        return true;
+    }
+
+    selectUp();
+    return false;
+}
 
 function deleteLayer(index) {
     var ref = new ActionReference();
@@ -62,16 +96,22 @@ function getSelectedLayersIdx() {
     return selectedLayers;
 };
 
-function mergeDouble() {
-    selectDown()
-    startSelectionProcess()
-    selectOpaquePixel()
-    selectUp()
-    layerViaCopy()
-    moveDown()
-    mergeDown()
-    selectUp()
-    moveDown()
+function activeLayerIsNormalLayer()
+{
+    var activeLayer = activeDocument.activeLayer;
+    return activeLayer.kind === LayerKind.NORMAL && !activeLayer.grouped;
+}
+
+function mergeDoubleProcess(layerIndex) {
+    selectDown();
+    startSelectionProcess();
+    selectOpaquePixel(layerIndex);
+    selectUp();
+    layerViaCopy();
+    moveDown();
+    mergeDown();
+    selectUp();
+    moveDown();
 }
 
 function selectDown() {
@@ -82,12 +122,12 @@ function selectDown() {
     executeAction(charIDToTypeID("slct"), selectDesc, DialogModes.NO);
 }
 
-function selectOpaquePixel() {
+function selectOpaquePixel(layerIndex) {
     var addDesc = new ActionDescriptor();
 
     var layerTrasparent = new ActionReference();
     layerTrasparent.putEnumerated(charIDToTypeID("Chnl"), charIDToTypeID("Chnl"), charIDToTypeID("Trsp"));
-    layerTrasparent.putName(charIDToTypeID("Lyr "), activeDocument.activeLayer.name);
+    layerTrasparent.putIndex(charIDToTypeID("Lyr "), layerIndex);
     addDesc.putReference(charIDToTypeID("null"), layerTrasparent);
 
     var select = new ActionReference();
@@ -134,3 +174,31 @@ function moveDown() {
 function mergeDown() {
     executeAction(charIDToTypeID("Mrg2"), undefined, DialogModes.NO);
 }
+
+function createProgressWindow(title, message, hasCancelButton) {
+    var win;
+    if (title == null) { title = "Work in progress";    }
+    if (message == null) { message = "Please wait..."; }
+    if (hasCancelButton == null) { hasCancelButton = false; }
+    win = new Window("palette", "" + title, undefined);
+    win.bar = win.add("progressbar", { x: 20, y: 12, width: 300, height: 20 }, 0, 100);
+    win.stMessage = win.add("statictext", { x: 10, y: 36, width: 320, height: 20 }, "" + message);
+    win.stMessage.justify = 'center';
+    if (hasCancelButton) {
+        win.cancelButton = win.add('button', undefined, 'Cancel');
+        win.cancelButton.onClick = function () { win.close(); throw new Error('User canceled the pre-processing!'); };
+    }
+    this.reset = function (message) {
+        win.bar.value = 0;
+        win.stMessage.text = message;
+        return win.update();
+    };
+    this.updateProgress = function (perc, message) {
+        if (perc != null) { win.bar.value = perc; }
+        if (message != null) { win.stMessage.text = message; }
+        return win.update();
+    };
+    this.close = function () { return win.close(); };
+    win.center(win.parent);
+    return win.show();
+};
