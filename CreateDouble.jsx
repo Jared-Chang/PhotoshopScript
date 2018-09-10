@@ -1,39 +1,19 @@
-/***********************************
+﻿/***********************************
     Auth: QiFen (QiFen.Pocket@gmail.com)
     LICENSE: MIT
 ************************************/
 
-var task = "var selectedLayerNames = getSelectedLayerName(); startSelectionProcess(); for (var p = 0; p < selectedLayerNames.length; p++) { selectOpaquePixel(selectedLayerNames[p]); selectOpaquePixel(selectedLayerNames[p]); updateProgress(selectedLayerNames.length, p) } copyMerge(); pastInPanel();";
+var selectedLayerIndex = getSelectedLayersIdx(); 
 
-doForcedProgress("Double creating", task);
+startSelectionProcess(); 
 
-function getSelectedLayerName() {
-    var theLayers = getSelectedLayersIdx();
-    var layerNames = [];
-    for (var i = 0; i < theLayers.length; ++i) {
-        selectLayerByIndex(theLayers[i]);
-        layerNames.push(activeDocument.activeLayer.name);
-    }
+for (var p = 0; p < selectedLayerIndex.length; p++) { 
+    selectOpaquePixel(selectedLayerIndex[p]); 
+    selectOpaquePixel(selectedLayerIndex[p]);
+} 
 
-    return layerNames;
-}
-
-function selectLayerByIndex(index, add) {
-    add = undefined ? add = false : add
-
-    var ref = new ActionReference();
-    ref.putIndex(charIDToTypeID("Lyr "), index);
-    var desc = new ActionDescriptor();
-    desc.putReference(charIDToTypeID("null"), ref);
-    if (add) desc.putEnumerated(stringIDToTypeID("selectionModifier"), stringIDToTypeID("selectionModifierType"), stringIDToTypeID("addToSelection"));
-    desc.putBoolean(charIDToTypeID("MkVs"), false);
-    try {
-        executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);
-    }
-    catch (e) {
-        alert(e.message);
-    }
-};
+copyMerge(); 
+pastInPanel();
 
 function getSelectedLayersIdx() {
     var selectedLayers = [];
@@ -72,13 +52,13 @@ function pastInPanel() {
     executeAction(charIDToTypeID("past"), pastDescriptor, DialogModes.NO);
 }
 
-function selectOpaquePixel(name)
+function selectOpaquePixel(index)
 {
     var addDesc = new ActionDescriptor();
 
     var layerTrasparent = new ActionReference();
     layerTrasparent.putEnumerated( charIDToTypeID( "Chnl" ), charIDToTypeID( "Chnl" ), charIDToTypeID( "Trsp" ) );
-    layerTrasparent.putName(charIDToTypeID("Lyr "), name);
+    layerTrasparent.putIndex(charIDToTypeID("Lyr "), index);
     addDesc.putReference( charIDToTypeID( "null" ), layerTrasparent );
 
     var select = new ActionReference();
