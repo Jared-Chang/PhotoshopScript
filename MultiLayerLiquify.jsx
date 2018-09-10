@@ -3,15 +3,42 @@
     LICENSE: MIT
 ************************************/
 
-var lastMeshPath = "C:\\Users\\[Your User Name]\\AppData\\Roaming\\Adobe\\Adobe Photoshop CC 2018\\Adobe Photoshop CC 2018 Settings\\Liquify Last Mesh.psp";
+var lastMeshPath = "C:\\Users\\QiFen\\AppData\\Roaming\\Adobe\\Adobe Photoshop CC 2018\\Adobe Photoshop CC 2018 Settings\\Liquify Last Mesh.psp";
 
-var theLayers = getSelectedLayersIdx();
+createProgressWindow();
+try {
+    multiLayersLiquify(updateProgress);
+}
+catch(e)
+{
+    alert(e.message);
+}
+close();
 
-multiLayersLiquifyWithSelectedArea();
+function multiLayersLiquify(updateProgress) {
 
-var task = "for (var p = 0; p < theLayers.length; p++) { selectLayerByIndex(theLayers[p], false); doLastLiquify(); updateProgress(theLayers.length, p); } deleteLayer(theLayers[theLayers.length-1] + 1); "
+    var theLayers = getSelectedLayersIdx();
 
-doForcedProgress("Applying liquify to all selected layer", task);
+    multiLayersLiquifyWithSelectedArea();
+
+    for (var p = 0; p < theLayers.length; p++) {
+        selectLayerByIndex(theLayers[p], false);
+
+        if (!activeLayerIsNormalLayer()) { continue; }
+
+        doLastLiquify();
+
+        var percentage = p / theLayers.length * 100;
+        updateProgress(percentage, percentage + "%");
+    }
+
+    deleteLayer(theLayers[theLayers.length - 1] + 1);
+}
+
+function activeLayerIsNormalLayer() {
+    var activeLayer = activeDocument.activeLayer;
+    return activeLayer.kind === LayerKind.NORMAL && !activeLayer.grouped;
+}
 
 function deleteLayer(index) {
     var ref = new ActionReference();
@@ -29,7 +56,7 @@ function deleteLayer(index) {
 function doLastLiquify() {
     try {
         var liquifyMDDescriptor = new ActionDescriptor();
-        liquifyMDDescriptor.putString( charIDToTypeID("LqMD"), lastMeshPath);
+        liquifyMDDescriptor.putString(charIDToTypeID("LqMD"), lastMeshPath);
         executeAction(charIDToTypeID("LqFy"), liquifyMDDescriptor, DialogModes.NO);
     }
     catch (e) { }
@@ -111,3 +138,31 @@ function openLiquifyDialog() {
     liquifyDescriptor.putData(charIDToTypeID("LqMe"), String.fromCharCode(0));
     executeAction(charIDToTypeID("LqFy"), liquifyDescriptor, DialogModes.ALL);
 }
+
+function createProgressWindow(title, message, hasCancelButton) {
+    var win;
+    if (title == null) { title = "Work in progress"; }
+    if (message == null) { message = "Please wait..."; }
+    if (hasCancelButton == null) { hasCancelButton = false; }
+    win = new Window("palette", "" + title, undefined);
+    win.bar = win.add("progressbar", { x: 20, y: 12, width: 300, height: 20 }, 0, 100);
+    win.stMessage = win.add("statictext", { x: 10, y: 36, width: 320, height: 20 }, "" + message);
+    win.stMessage.justify = 'center';
+    if (hasCancelButton) {
+        win.cancelButton = win.add('button', undefined, 'Cancel');
+        win.cancelButton.onClick = function () { win.close(); throw new Error('User canceled the pre-processing!'); };
+    }
+    this.reset = function (message) {
+        win.bar.value = 0;
+        win.stMessage.text = message;
+        return win.update();
+    };
+    this.updateProgress = function (perc, message) {
+        if (perc != null) { win.bar.value = perc; }
+        if (message != null) { win.stMessage.text = message; }
+        return win.update();
+    };
+    this.close = function () { return win.close(); };
+    win.center(win.parent);
+    return win.show();
+};
